@@ -9,14 +9,15 @@ import okhttp3.Response;
 import java.io.IOException;
 
 public class AccuweatherModel {
-    //http://dataservice.accuweather.com/forecasts/v1/daily/1day/{332287}
+    //http://dataservice.accuweather.com/forecasts/v1/daily/1day/349727
     private static final String PROTOKOL = "https";
     private static final String BASE_HOST = "dataservice.accuweather.com";
     private static final String FORECASTS = "forecasts";
     private static final String VERSION = "v1";
     private static final String DAILY = "daily";
     private static final String ONE_DAY = "1day";
-    private static final String API_KEY = "B8e2GVkEgZ9W7f4wksMKsd6fDI9uF1Nx";
+    private static final String FIVE_DAYS = "5day";
+    private static final String API_KEY = "pXJd8MokcZCdrd2MsoGl2DBZAyCa0zvv";
     private static final String API_KEY_QUERY_PARAM = "apikey";
     private static final String LOCATIONS = "locations";
     private static final String CITIES = "cities";
@@ -48,6 +49,24 @@ public class AccuweatherModel {
                 System.out.println(weatherResponse);
                 break;
             case FIVE_DAYS:
+                HttpUrl httpUrl1 = new HttpUrl.Builder()
+                        .scheme(PROTOKOL)
+                        .host(BASE_HOST)
+                        .addPathSegment(FORECASTS)
+                        .addPathSegment(VERSION)
+                        .addPathSegment(DAILY)
+                        .addPathSegment(FIVE_DAYS)
+                        .addPathSegment(detectCityKey(selectedCity))
+                        .addQueryParameter(API_KEY_QUERY_PARAM, API_KEY)
+                        .build();
+
+                Request request1 = new Request.Builder()
+                        .url(httpUrl1)
+                        .build();
+
+                Response fiveDayForecastResponse = okHttpClient.newCall(request1).execute();
+                String weatherResponse1 = fiveDayForecastResponse.body().string();
+                System.out.println(weatherResponse1);
                 break;
         }
     }
@@ -73,12 +92,13 @@ public class AccuweatherModel {
 
         Response response = okHttpClient.newCall(request).execute();
         String responseString = response.body().string();
-        System.out.println(responseString);
-        return responseString;
+
+        String cityKey = objectMapper.readTree(responseString).get(0).at("/Key").asText();
+        return cityKey;
+
     }
 
     public static void main(String[] args) throws IOException {
-        detectCityKey("Moscow");
+        getWeather("Saint Petersburg", Period.FIVE_DAYS);
     }
-
 }
